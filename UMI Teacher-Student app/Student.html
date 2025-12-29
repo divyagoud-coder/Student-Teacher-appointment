@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Dashboard</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f1f5f9;
+        margin: 0;
+    }
+
+    header {
+        background: #1f2937;
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    header button {
+        background: red;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    .container {
+        padding: 20px;
+    }
+
+    .card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        margin: 6px 0;
+    }
+
+    button {
+        padding: 8px 12px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- REGISTER -->
+<div class="container" id="registerSection">
+    <div class="card">
+        <h2>Student Registration</h2>
+        <input type="text" id="regName" placeholder="Full Name">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <p>Already registered?
+            <a href="#" onclick="showLogin()">Login here</a>
+        </p>
+    </div>
+</div>
+
+<!-- LOGIN -->
+<div class="container hidden" id="loginSection">
+    <div class="card">
+        <h2>Student Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+<header>
+    <h2>Student Dashboard</h2>
+    <button onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+
+    <!-- SEARCH TEACHER -->
+    <div class="card">
+        <h3>Search Teacher</h3>
+        <input type="text" id="searchInput" placeholder="Search by name or subject" onkeyup="searchTeacher()">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Subject</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="teacherTable"></tbody>
+        </table>
+    </div>
+
+    <!-- BOOK APPOINTMENT -->
+    <div class="card">
+        <h3>Book Appointment</h3>
+        <input type="text" id="selectedTeacher" placeholder="Teacher Name" readonly>
+        <input type="date" id="appDate">
+        <input type="time" id="appTime">
+        <button onclick="bookAppointment()">Book Appointment</button>
+    </div>
+
+</div>
+</div>
+
+<script>
+    // LOAD DATA FROM LOCAL STORAGE
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+
+    let teachers = [
+        { name: "Mr. Kumar", dept: "CSE", subject: "Java" },
+        { name: "Ms. Anitha", dept: "ECE", subject: "Signals" },
+        { name: "Dr. Rao", dept: "EEE", subject: "Power Systems" }
+    ];
+
+    // REGISTER
+    function register() {
+        let name = document.getElementById("regName").value;
+        let email = document.getElementById("regEmail").value;
+        let pass = document.getElementById("regPassword").value;
+
+        if (!name || !email || !pass) {
+            alert("Fill all fields");
+            return;
+        }
+
+        let exists = students.find(s => s.email === email);
+        if (exists) {
+            alert("Email already registered");
+            return;
+        }
+
+        students.push({ name, email, pass });
+        localStorage.setItem("students", JSON.stringify(students));
+
+        alert("Registration successful! Please login.");
+        showLogin();
+    }
+
+    function showLogin() {
+        document.getElementById("registerSection").classList.add("hidden");
+        document.getElementById("loginSection").classList.remove("hidden");
+    }
+
+    // LOGIN
+    function login() {
+        let email = document.getElementById("loginEmail").value;
+        let pass = document.getElementById("loginPassword").value;
+
+        let student = students.find(s => s.email === email && s.pass === pass);
+
+        if (student) {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
+            displayTeachers(teachers);
+        } else {
+            alert("Invalid email or password");
+        }
+    }
+
+    // LOGOUT
+    function logout() {
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginSection").classList.remove("hidden");
+    }
+
+    // DISPLAY TEACHERS
+    function displayTeachers(list) {
+        let table = document.getElementById("teacherTable");
+        table.innerHTML = "";
+
+        list.forEach(t => {
+            table.innerHTML += `
+            <tr>
+                <td>${t.name}</td>
+                <td>${t.dept}</td>
+                <td>${t.subject}</td>
+                <td><button onclick="selectTeacher('${t.name}')">Book</button></td>
+            </tr>`;
+        });
+    }
+
+    // SEARCH TEACHER
+    function searchTeacher() {
+        let value = document.getElementById("searchInput").value.toLowerCase();
+        let filtered = teachers.filter(t =>
+            t.name.toLowerCase().includes(value) ||
+            t.subject.toLowerCase().includes(value)
+        );
+        displayTeachers(filtered);
+    }
+
+    function selectTeacher(name) {
+        document.getElementById("selectedTeacher").value = name;
+    }
+
+    // BOOK APPOINTMENT
+    function bookAppointment() {
+        let teacher = document.getElementById("selectedTeacher").value;
+        let date = document.getElementById("appDate").value;
+        let time = document.getElementById("appTime").value;
+
+        if (!teacher || !date || !time) {
+            alert("Select teacher, date and time");
+            return;
+        }
+
+        alert(`Appointment booked with ${teacher} on ${date} at ${time}`);
+        document.getElementById("selectedTeacher").value = "";
+        document.getElementById("appDate").value = "";
+        document.getElementById("appTime").value = "";
+    }
+</script>
+
+</body>
+</html>

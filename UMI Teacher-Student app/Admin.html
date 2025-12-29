@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        margin: 6px 0;
+    }
+
+    button {
+        padding: 8px 12px;
+        margin-top: 5px;
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+    button.delete {
+        background: #dc3545;
+    }
+
+    button.approve {
+        background: #28a745;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        margin: 8px 0;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<div class="container">
+
+    <!-- Add Teacher Module -->
+    <div class="card">
+        <h2>Add Teacher</h2>
+        <input type="text" id="tName" placeholder="Teacher Name">
+        <input type="text" id="tDept" placeholder="Department">
+        <input type="text" id="tSub" placeholder="Subject">
+        <button onclick="addTeacher()">Add Teacher</button>
+    </div>
+
+    <!-- Update / Delete Teacher -->
+    <div class="card">
+        <h2>Update / Delete Teacher</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Subject</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="teacherTable"></tbody>
+        </table>
+    </div>
+
+    <!-- Approve Registered Students -->
+    <div class="card">
+        <h2>Approve Registered Students</h2>
+        <ul id="studentList"></ul>
+    </div>
+
+</div>
+
+<script>
+    let teachers = [];
+
+    let students = [
+        { name: "Ravi", approved: false },
+        { name: "Sita", approved: false },
+        { name: "Arjun", approved: false }
+    ];
+
+    function addTeacher() {
+        let name = document.getElementById("tName").value;
+        let dept = document.getElementById("tDept").value;
+        let sub = document.getElementById("tSub").value;
+
+        if (!name || !dept || !sub) {
+            alert("Please fill all fields");
+            return;
+        }
+
+        teachers.push({ name, dept, sub });
+        displayTeachers();
+
+        document.getElementById("tName").value = "";
+        document.getElementById("tDept").value = "";
+        document.getElementById("tSub").value = "";
+    }
+
+    function displayTeachers() {
+        let table = document.getElementById("teacherTable");
+        table.innerHTML = "";
+
+        teachers.forEach((t, index) => {
+            table.innerHTML += `
+            <tr>
+                <td>${t.name}</td>
+                <td>${t.dept}</td>
+                <td>${t.sub}</td>
+                <td>
+                    <button onclick="updateTeacher(${index})">Update</button>
+                    <button class="delete" onclick="deleteTeacher(${index})">Delete</button>
+                </td>
+            </tr>
+            `;
+        });
+    }
+
+    function updateTeacher(index) {
+        let t = teachers[index];
+
+        let newName = prompt("Update Name", t.name);
+        let newDept = prompt("Update Department", t.dept);
+        let newSub = prompt("Update Subject", t.sub);
+
+        if (newName && newDept && newSub) {
+            teachers[index] = {
+                name: newName,
+                dept: newDept,
+                sub: newSub
+            };
+            displayTeachers();
+        }
+    }
+
+    function deleteTeacher(index) {
+        teachers.splice(index, 1);
+        displayTeachers();
+    }
+
+    function displayStudents() {
+        let list = document.getElementById("studentList");
+        list.innerHTML = "";
+
+        students.forEach((s, index) => {
+            if (!s.approved) {
+                list.innerHTML += `
+                <li>
+                    ${s.name}
+                    <button class="approve" onclick="approveStudent(${index})">Approve</button>
+                </li>
+                `;
+            }
+        });
+    }
+
+    function approveStudent(index) {
+        students[index].approved = true;
+        displayStudents();
+    }
+
+    displayStudents();
+</script>
+
+</body>
+</html>
